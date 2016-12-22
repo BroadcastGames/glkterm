@@ -18,7 +18,7 @@ CC = gcc -ansi
 LIBS = -lncursesw
 
 # Use this LIBS line instead of the above if you do not have ncursesw
-# available. For example, on a standard Mac OSX setup. (You will 
+# available. For example, on a standard Mac OSX setup. (You will
 # probably also have to set LOCAL_NCURSESW in CFLAGS or in gtoption.h.)
 #LIBS = -lncurses
 
@@ -33,7 +33,7 @@ GLKTERM_OBJS = \
   gtmessag.o gtmessin.o gtmisc.o gtstream.o gtstyle.o \
   gtw_blnk.o gtw_buf.o gtw_grid.o gtw_pair.o gtwindow.o \
   gtschan.o gtblorb.o cgunicod.o cgdate.o gi_dispa.o gi_blorb.o \
-  gtncursesw.o
+  gtncursesw.o garglk_minimum_config.o
 
 GLKTERM_HEADERS = \
   glkterm.h gtoption.h gtw_blnk.h gtw_buf.h \

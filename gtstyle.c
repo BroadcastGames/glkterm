@@ -13,12 +13,124 @@
 #include "gtw_grid.h"
 #include "gtw_buf.h"
 
-/* This version of the library doesn't accept style hints. */
+/* GarGlk code needs */
+#include "garglk_minimum.h"
+#include <string.h>
 
-void glk_stylehint_set(glui32 wintype, glui32 styl, glui32 hint, 
-    glsi32 val)
+
+/* This version of the library borrows from GarGlk to try and accept style hints. */
+
+static int isprop(int f)
 {
+    return f == PROPR || f == PROPI || f == PROPB || f == PROPZ;
 }
+
+static int isbold(int f)
+{
+    return f == PROPB || f == PROPZ || f == MONOB || f == MONOZ;
+}
+
+static int isitalic(int f)
+{
+    return f == PROPI || f == PROPZ || f == MONOI || f == MONOZ;
+}
+
+static int makefont(int p, int b, int i)
+{
+    if ( p && !b && !i) return PROPR;
+    if ( p && !b &&  i) return PROPI;
+    if ( p &&  b && !i) return PROPB;
+    if ( p &&  b &&  i) return PROPZ;
+    if (!p && !b && !i) return MONOR;
+    if (!p && !b &&  i) return MONOI;
+    if (!p &&  b && !i) return MONOB;
+    if (!p &&  b &&  i) return MONOZ;
+    return PROPR;
+}
+
+
+void glk_stylehint_set(glui32 wintype, glui32 style, glui32 hint, glsi32 val)
+{
+    style_t *styles;
+    int p, b, i;
+
+    if (wintype == wintype_AllTypes)
+    {
+        glk_stylehint_set(wintype_TextGrid, style, hint, val);
+        glk_stylehint_set(wintype_TextBuffer, style, hint, val);
+        return;
+    }
+
+    if (wintype == wintype_TextGrid)
+        styles = gli_gstyles;
+    else if (wintype == wintype_TextBuffer)
+        styles = gli_tstyles;
+    else
+        return;
+
+    if (!gli_conf_stylehint)
+        return;
+
+    switch (hint)
+    {
+        case stylehint_TextColor:
+            styles[style].fg[0] = (val >> 16) & 0xff;
+            styles[style].fg[1] = (val >> 8) & 0xff;
+            styles[style].fg[2] = (val) & 0xff;
+            break;
+
+        case stylehint_BackColor:
+            styles[style].bg[0] = (val >> 16) & 0xff;
+            styles[style].bg[1] = (val >> 8) & 0xff;
+            styles[style].bg[2] = (val) & 0xff;
+            break;
+
+        case stylehint_ReverseColor:
+            styles[style].reverse = (val != 0);
+            break;
+
+        case stylehint_Proportional:
+            if (wintype == wintype_TextBuffer)
+            {
+                p = val > 0;
+                b = isbold(styles[style].font);
+                i = isitalic(styles[style].font);
+                styles[style].font = makefont(p, b, i);
+            }
+            break;
+
+        case stylehint_Weight:
+            p = isprop(styles[style].font);
+            b = val > 0;
+            i = isitalic(styles[style].font);
+            styles[style].font = makefont(p, b, i);
+            break;
+
+        case stylehint_Oblique:
+            p = isprop(styles[style].font);
+            b = isbold(styles[style].font);
+            i = val > 0;
+            styles[style].font = makefont(p, b, i);
+            break;
+    }
+
+    if (wintype == wintype_TextBuffer &&
+            style == style_Normal &&
+            hint == stylehint_BackColor)
+    {
+        memcpy(gli_window_color, styles[style].bg, 3);
+    }
+
+    if (wintype == wintype_TextBuffer &&
+            style == style_Normal &&
+            hint == stylehint_TextColor)
+    {
+        memcpy(gli_more_color, styles[style].fg, 3);
+        memcpy(gli_caret_color, styles[style].fg, 3);
+    }
+}
+
+
 
 void glk_stylehint_clear(glui32 wintype, glui32 styl, glui32 hint)
 {
@@ -32,10 +144,10 @@ glui32 glk_style_distinguish(window_t *win, glui32 styl1, glui32 styl2)
         gli_strict_warning(L"style_distinguish: invalid ref");
         return FALSE;
     }
-    
+
     if (styl1 >= style_NUMSTYLES || styl2 >= style_NUMSTYLES)
         return FALSE;
-    
+
     switch (win->type) {
         case wintype_TextBuffer:
             styleattrs = win_textbuffer_styleattrs;
@@ -46,16 +158,16 @@ glui32 glk_style_distinguish(window_t *win, glui32 styl1, glui32 styl2)
         default:
             return FALSE;
     }
-    
+
     /* styleattrs is an array of chtype values, as defined in curses.h. */
-    
+
     if (styleattrs[styl1] != styleattrs[styl2])
         return TRUE;
-    
+
     return FALSE;
 }
 
-glui32 glk_style_measure(window_t *win, glui32 styl, glui32 hint, 
+glui32 glk_style_measure(window_t *win, glui32 styl, glui32 hint,
     glui32 *result)
 {
     int *styleattrs;
@@ -65,10 +177,10 @@ glui32 glk_style_measure(window_t *win, glui32 styl, glui32 hint,
         gli_strict_warning(L"style_measure: invalid ref");
         return FALSE;
     }
-    
+
     if (styl >= style_NUMSTYLES || hint >= stylehint_NUMHINTS)
         return FALSE;
-    
+
     switch (win->type) {
         case wintype_TextBuffer:
             styleattrs = win_textbuffer_styleattrs;
@@ -79,10 +191,10 @@ glui32 glk_style_measure(window_t *win, glui32 styl, glui32 hint,
         default:
             return FALSE;
     }
-    
+
     if (!result)
         result = &dummy;
-    
+
     switch (hint) {
         case stylehint_Indentation:
         case stylehint_ParaIndentation:
@@ -104,6 +216,6 @@ glui32 glk_style_measure(window_t *win, glui32 styl, glui32 hint,
             *result = FALSE;
             return TRUE;
     }
-    
+
     return FALSE;
 }
