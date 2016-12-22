@@ -1,6 +1,6 @@
 GlkTerm: Curses.h Implementation of the Glk API.
 
-NOTE: There is also a readme-whidechar.txt
+NOTE: There is also [readme-widechar.txt](readme-widechar.txt)
 
 GlkTerm Library: version 1.0.5.
 Glk API which this implements: version 0.7.4.
