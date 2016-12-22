@@ -1,6 +1,8 @@
 GlkTerm: Curses.h Implementation of the Glk API.
 
-GlkTerm Library: version 1.0.4.
+NOTE: There is also a readme-whidechar.txt
+
+GlkTerm Library: version 1.0.5.
 Glk API which this implements: version 0.7.4.
 Designed by Andrew Plotkin <erkyrath@eblong.com>
 http://eblong.com/zarf/glk/
@@ -354,6 +356,14 @@ When closing windows, + signs can be left in the window borders.
     Command history (only in textbuffers)
 
 0.5: Alpha release.
+
+
+* Ubuntu 16.10 compile notes
+
+make on Ubuntu 16.10 x64 reports problems with various time.h include
+references. Similar to these problems: https://github.com/android-ndk/ndk/issues/130
+Unsolved.
+
 
 * Permissions
 
