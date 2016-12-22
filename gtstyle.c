@@ -131,10 +131,62 @@ void glk_stylehint_set(glui32 wintype, glui32 style, glui32 hint, glsi32 val)
 }
 
 
-
-void glk_stylehint_clear(glui32 wintype, glui32 styl, glui32 hint)
+void glk_stylehint_clear(glui32 wintype, glui32 style, glui32 hint)
 {
+    style_t *styles;
+    style_t *defaults;
+
+    if (wintype == wintype_AllTypes)
+    {
+        glk_stylehint_clear(wintype_TextGrid, style, hint);
+        glk_stylehint_clear(wintype_TextBuffer, style, hint);
+        return;
+    }
+
+    if (wintype == wintype_TextGrid)
+    {
+        styles = gli_gstyles;
+        defaults = gli_gstyles_def;
+    }
+    else if (wintype == wintype_TextBuffer)
+    {
+        styles = gli_tstyles;
+        defaults = gli_tstyles_def;
+    }
+    else
+    {
+        return;
+    }
+
+    if (!gli_conf_stylehint)
+        return;
+
+    switch (hint)
+    {
+        case stylehint_TextColor:
+            styles[style].fg[0] = defaults[style].fg[0];
+            styles[style].fg[1] = defaults[style].fg[1];
+            styles[style].fg[2] = defaults[style].fg[2];
+            break;
+
+        case stylehint_BackColor:
+            styles[style].bg[0] = defaults[style].bg[0];
+            styles[style].bg[1] = defaults[style].bg[1];
+            styles[style].bg[2] = defaults[style].bg[2];
+            break;
+
+        case stylehint_ReverseColor:
+            styles[style].reverse = defaults[style].reverse;
+            break;
+
+        case stylehint_Proportional:
+        case stylehint_Weight:
+        case stylehint_Oblique:
+            styles[style].font = defaults[style].font;
+            break;
+    }
 }
+
 
 glui32 glk_style_distinguish(window_t *win, glui32 styl1, glui32 styl2)
 {
