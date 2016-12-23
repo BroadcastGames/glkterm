@@ -43,5 +43,7 @@ unsigned char gli_border_color[3] = { 0x00, 0x00, 0x00 };
 unsigned char gli_more_color[3] = { 0x00, 0x00, 0x00 };
 unsigned char gli_link_color[3] = { 0x00, 0x00, 0x60 };
 
-
-int gli_conf_stylehint = 0;
+/*
+So much time wasted due to this being 0
+*/
+int gli_conf_stylehint = 1;

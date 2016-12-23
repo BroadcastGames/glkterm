@@ -57,6 +57,7 @@ static int makefont(int p, int b, int i)
 
 int stylehint_set_call_count = 0;
 int stylehint_clear_call_count = 0;
+static int stylehint_set_textcolor_count = 0;
 
 void glk_stylehint_set(glui32 wintype, glui32 style, glui32 hint, glsi32 val)
 {
@@ -65,7 +66,7 @@ void glk_stylehint_set(glui32 wintype, glui32 style, glui32 hint, glsi32 val)
     int p, b, i;
 
 /* TIP: close and open the storyhints window to see output */
-fprintf(stderr, "stylehint_set %d %d %d %d %d\n", stylehint_set_call_count, wintype, style, hint, val);
+fprintf(stderr, "stylehint_set %d %d; %d %d %d %d\n", stylehint_set_call_count, stylehint_set_textcolor_count, wintype, style, hint, val);
 /* this works: exit(0); */
 
     if (wintype == wintype_AllTypes)
@@ -88,6 +89,7 @@ fprintf(stderr, "stylehint_set %d %d %d %d %d\n", stylehint_set_call_count, wint
     switch (hint)
     {
         case stylehint_TextColor:
+            stylehint_set_textcolor_count++;
             styles[style].fgint = val;
             fprintf(stderr, "stylehint_set %d fgint %d\n", stylehint_set_call_count, val);
             styles[style].fg[0] = (val >> 16) & 0xff;
