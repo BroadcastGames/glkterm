@@ -1,6 +1,6 @@
 GlkTerm: Curses.h Implementation of the Glk API.
 
-NOTE: There is also a readme-whidechar.txt
+NOTE: There is also a readme-widechar.txt
 
 GlkTerm Library: version 1.0.5.
 Glk API which this implements: version 0.7.4.
@@ -60,7 +60,7 @@ may not even work on all OSes. (If GlkTerm is compiled without support
 for timed input, this option will be removed.)
     -version: Display Glk library version.
     -help: Display list of command-line options.
-    
+
 NUM values can be any number. BOOL values can be "yes" or "no", or no
 value to toggle.
 
@@ -160,7 +160,7 @@ You can put other startup code in glkunix_startup_code(). This should
 generally be limited to finding and opening data files. There are a few
 Unix Glk library functions which are convenient for this purpose:
 
-strid_t glkunix_stream_open_pathname(char *pathname, glui32 textmode, 
+strid_t glkunix_stream_open_pathname(char *pathname, glui32 textmode,
     glui32 rock);
 
 This opens an arbitrary file, in read-only mode. Note that this function
@@ -202,7 +202,7 @@ current that is.)
 
 AIX:
     See HPUX. (Reported for AIX 3.2.5).
-    
+
 FreeBSD:
     Compiles as is.
 
@@ -231,7 +231,7 @@ has an ANSI stdio library and a curses.h library. The likely trouble
 spots are glk_fileref_delete_file() and glk_fileref_does_file_exist() --
 I've implemented them with the Unix calls unlink() and stat()
 respectively. glk_fileref_create_by_prompt() also contains a call to
-stat(), to implement a "Do you want to overwrite that file?" prompt. 
+stat(), to implement a "Do you want to overwrite that file?" prompt.
 
 I have not yet tried to deal with character-set issues. The library
 assumes that all input and output characters are in Latin-1.
@@ -293,7 +293,7 @@ When closing windows, + signs can be left in the window borders.
 
 1.0.1:
     Added the date-time functions (Glk 0.7.2).
-    Fixed bugs in Unicode normalization and case-changing (thanks David 
+    Fixed bugs in Unicode normalization and case-changing (thanks David
     Fletcher and David Kinder).
 
 1.0.0:
@@ -365,6 +365,11 @@ references. Similar to these problems: https://github.com/android-ndk/ndk/issues
 Unsolved.
 
 
+* Active December 2016 work notifies
+
+1. fprintf to stderr gets cleared from screen, where can I log to easily?
+
+
 * Permissions
 
 The source code in this package is copyright 1998-2011 by Andrew Plotkin. You
@@ -374,4 +379,3 @@ incorporate this code into your own program and distribute that, or modify
 this code and use and distribute the modified version, as long as you retain
 a notice in your program or documentation which mentions my name and the
 URL shown above.
-

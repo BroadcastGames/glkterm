@@ -18,7 +18,7 @@
 /* Array of curses.h attribute values, one for each style. */
 int win_textbuffer_styleattrs[style_NUMSTYLES];
 
-/* Maximum buffer size. The slack value is how much larger than the size 
+/* Maximum buffer size. The slack value is how much larger than the size
     we should get before we trim. */
 #define BUFFER_SIZE (5000)
 #define BUFFER_SLACK (1000)
@@ -27,7 +27,7 @@ static void final_lines(window_textbuffer_t *dwin, long beg, long end);
 static long find_style_by_pos(window_textbuffer_t *dwin, long pos);
 static long find_line_by_pos(window_textbuffer_t *dwin, long pos);
 static void set_last_run(window_textbuffer_t *dwin, glui32 style);
-static void import_input_line(window_textbuffer_t *dwin, void *buf, 
+static void import_input_line(window_textbuffer_t *dwin, void *buf,
     int unicode, long len);
 static void export_input_line(void *buf, int unicode, long len, wchar_t *chars);
 
@@ -36,26 +36,26 @@ window_textbuffer_t *win_textbuffer_create(window_t *win)
     int ix;
     window_textbuffer_t *dwin = (window_textbuffer_t *)malloc(sizeof(window_textbuffer_t));
     dwin->owner = win;
-    
+
     dwin->numchars = 0;
     dwin->charssize = 500;
     dwin->chars = (wchar_t *)malloc(dwin->charssize * sizeof(wchar_t));
-    
+
     dwin->numlines = 0;
     dwin->linessize = 50;
     dwin->lines = (tbline_t *)malloc(dwin->linessize * sizeof(tbline_t));
-    
+
     dwin->numruns = 0;
     dwin->runssize = 40;
     dwin->runs = (tbrun_t *)malloc(dwin->runssize * sizeof(tbrun_t));
-    
+
     dwin->tmplinessize = 40;
     dwin->tmplines = (tbline_t *)malloc(dwin->tmplinessize * sizeof(tbline_t));
-    
+
     dwin->tmpwordssize = 40;
     dwin->tmpwords = (tbword_t *)malloc(dwin->tmpwordssize * sizeof(tbword_t));
-    
-    if (!dwin->chars || !dwin->runs || !dwin->lines 
+
+    if (!dwin->chars || !dwin->runs || !dwin->lines
         || !dwin->tmplines || !dwin->tmpwords)
         return NULL;
 
@@ -63,11 +63,11 @@ window_textbuffer_t *win_textbuffer_create(window_t *win)
     dwin->inunicode = FALSE;
     dwin->inecho = FALSE;
     dwin->intermkeys = 0;
-    
+
     dwin->numruns = 1;
     dwin->runs[0].style = style_Normal;
     dwin->runs[0].pos = 0;
-    
+
     if (pref_historylen > 1) {
         dwin->history = (wchar_t **)malloc(sizeof(wchar_t *) * pref_historylen);
         if (!dwin->history)
@@ -81,7 +81,7 @@ window_textbuffer_t *win_textbuffer_create(window_t *win)
     dwin->historypos = 0;
     dwin->historyfirst = 0;
     dwin->historypresent = 0;
-    
+
     dwin->dirtybeg = -1;
     dwin->dirtyend = -1;
     dwin->dirtydelta = -1;
@@ -89,7 +89,7 @@ window_textbuffer_t *win_textbuffer_create(window_t *win)
     dwin->scrollpos = 0;
     dwin->lastseenline = 0;
     dwin->drawall = TRUE;
-    
+
     dwin->width = -1;
     dwin->height = -1;
 
@@ -105,38 +105,38 @@ void win_textbuffer_destroy(window_textbuffer_t *dwin)
         }
         dwin->inbuf = NULL;
     }
-    
+
     dwin->owner = NULL;
-    
+
     if (dwin->tmplines) {
         /* don't try to destroy tmplines; they're all invalid */
         free(dwin->tmplines);
         dwin->tmplines = NULL;
     }
-    
+
     if (dwin->lines) {
         final_lines(dwin, 0, dwin->numlines);
         free(dwin->lines);
         dwin->lines = NULL;
     }
-    
+
     if (dwin->runs) {
         free(dwin->runs);
         dwin->runs = NULL;
     }
-    
+
     if (dwin->chars) {
         free(dwin->chars);
         dwin->chars = NULL;
     }
-    
+
     free(dwin);
 }
 
 static void final_lines(window_textbuffer_t *dwin, long beg, long end)
 {
     long lx;
-    
+
     for (lx=beg; lx<end; lx++) {
         tbline_t *ln = &(dwin->lines[lx]);
         if (ln->words) {
@@ -157,7 +157,7 @@ void win_textbuffer_rearrange(window_t *win, grect_t *box)
 
     dwin->width = box->right - box->left;
     dwin->height = box->bottom - box->top;
-    
+
     if (oldwid != dwin->width) {
         /* Set dirty region to the whole (or visible?), and
             delta should indicate that the whole old region is changed. */
@@ -175,21 +175,21 @@ void win_textbuffer_rearrange(window_t *win, grect_t *box)
     }
 }
 
-/* Find the last line for which pos >= line.pos. If pos is before the first 
+/* Find the last line for which pos >= line.pos. If pos is before the first
     line.pos, or if there are no lines, this returns -1. Lines always go to
     the end of the text, so this will never be numlines or higher. */
 static long find_line_by_pos(window_textbuffer_t *dwin, long pos)
 {
     long lx;
-    
+
     if (dwin->numlines == 0)
         return -1;
-    
+
     for (lx=dwin->numlines-1; lx >= 0; lx--) {
         if (pos >= dwin->lines[lx].pos)
             return lx;
     }
-    
+
     return -1;
 }
 
@@ -199,14 +199,14 @@ static long find_style_by_pos(window_textbuffer_t *dwin, long pos)
 {
     long beg, end, val;
     tbrun_t *runs = dwin->runs;
-    
-    /* Do a binary search, maintaining 
+
+    /* Do a binary search, maintaining
             runs[beg].pos <= pos < runs[end].pos
         (we pretend that runs[numruns].pos is infinity) */
-    
+
     beg = 0;
     end = dwin->numruns;
-    
+
     while (beg+1 < end) {
         val = (beg+end) / 2;
         if (pos >= runs[val].pos) {
@@ -216,18 +216,18 @@ static long find_style_by_pos(window_textbuffer_t *dwin, long pos)
             end = val;
         }
     }
-    
+
     return beg;
 }
 
 /* This does layout on a segment of text, writing into tmplines. Returns
-    the number of lines laid. Assumes tmplines is entirely unused, 
+    the number of lines laid. Assumes tmplines is entirely unused,
     initially. */
 static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
     int startpara)
 {
     long cx, cx2, lx, rx;
-    long numwords; 
+    long numwords;
     long linestartpos;
     wchar_t ch;
     int lastlinetype;
@@ -236,23 +236,23 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
     /* cache some values */
     wchar_t *chars = dwin->chars;
     tbrun_t *runs = dwin->runs;
-    
+
     lastlinetype = (startpara) ? wd_EndLine : wd_Text;
     cx = chbeg;
     linestartpos = chbeg;
     lx = 0;
     numwords = 0; /* actually number of tmpwords */
-    
+
     rx = find_style_by_pos(dwin, chbeg);
     style = runs[rx].style;
     if (rx+1 >= dwin->numruns)
         styleendpos = chend+1;
     else
         styleendpos = runs[rx+1].pos;
-    
-    /* create lines until we reach the end of the text segment; but if the 
+
+    /* create lines until we reach the end of the text segment; but if the
         last line ends with a newline, go one more. */
-    
+
     while (numwords || cx < chend || lastlinetype != wd_EndPage) {
         tbline_t *ln;
         int lineover, lineeatto, lastsolidwd;
@@ -260,40 +260,40 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
         long wx, wx2;
         int linewidth, widthsofar;
         int linetype = 0;
-        
+
         if (lx+2 >= dwin->tmplinessize) {
             /* leaves room for a final line */
             dwin->tmplinessize *= 2;
-            dwin->tmplines = (tbline_t *)realloc(dwin->tmplines, 
+            dwin->tmplines = (tbline_t *)realloc(dwin->tmplines,
                 dwin->tmplinessize * sizeof(tbline_t));
         }
         ln = &(dwin->tmplines[lx]);
         lx++;
-        
+
         lineover = FALSE;
         lineeatto = 0;
         lastsolidwd = 0;
         widthsofar = 0;
         linewidth = dwin->width;
-        
+
         wx = 0;
-        
+
         while ((wx < numwords || cx < chend) && !lineover) {
             tbword_t *wd;
-            
+
             if (wx >= numwords) {
                 /* suck down a new word. */
-                
+
                 if (wx+2 >= dwin->tmpwordssize) {
                     /* leaves room for a split word */
                     dwin->tmpwordssize *= 2;
-                    dwin->tmpwords = (tbword_t *)realloc(dwin->tmpwords, 
+                    dwin->tmpwords = (tbword_t *)realloc(dwin->tmpwords,
                         dwin->tmpwordssize * sizeof(tbword_t));
                 }
                 wd = &(dwin->tmpwords[wx]);
                 wx++;
                 numwords++;
-                
+
                 ch = chars[cx];
                 cx2 = cx;
                 cx++;
@@ -308,7 +308,7 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
                     wd->type = wd_Blank;
                     wd->pos = cx2;
                     wd->width = wcwidth(ch);
-                    while (cx < chend 
+                    while (cx < chend
                             && cx < styleendpos && chars[cx] == L' ') {
                         wd->width += wcwidth(chars[cx]);
                         cx++;
@@ -320,8 +320,8 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
                     wd->type = wd_Text;
                     wd->pos = cx2;
                     wd->width = wcwidth(ch);
-                    while (cx < chend 
-                            && cx < styleendpos && chars[cx] != L'\n' 
+                    while (cx < chend
+                            && cx < styleendpos && chars[cx] != L'\n'
                             && chars[cx] != L' ') {
                         wd->width += wcwidth(chars[cx]);
                         cx++;
@@ -329,7 +329,7 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
                     wd->len = cx - (wd->pos);
                     wd->style = style;
                 }
-                
+
                 if (cx >= styleendpos) {
                     rx++;
                     style = runs[rx].style;
@@ -344,7 +344,7 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
                 wd = &(dwin->tmpwords[wx]);
                 wx++;
             }
-            
+
             if (wd->type == wd_EndLine) {
                 lineover = TRUE;
                 lineeatto = wx;
@@ -352,16 +352,16 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
                 linetype = wd_EndLine;
             }
             else {
-                if (wd->type == wd_Blank 
+                if (wd->type == wd_Blank
                         || widthsofar + wd->width <= linewidth) {
                     widthsofar += wd->width;
                 }
                 else {
                     /* last text word goes over. */
-                    for (wx2 = wx-1; 
-                        wx2 > 0 && dwin->tmpwords[wx2-1].type == wd_Text; 
+                    for (wx2 = wx-1;
+                        wx2 > 0 && dwin->tmpwords[wx2-1].type == wd_Text;
                         wx2--) { }
-                    /* wx2 is now the first text word of this group, which 
+                    /* wx2 is now the first text word of this group, which
                         is to say right after the last blank word. If this
                         is > 0, chop there; otherwise we have to split a
                         word somewhere. */
@@ -375,10 +375,10 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
                         /* first group goes over; gotta split. But we know
                             the last word of the group is the culprit. */
                         int extra = widthsofar + wd->width - linewidth;
-                        /* extra is the amount hanging outside the boundary; 
+                        /* extra is the amount hanging outside the boundary;
                             will be > 0. */
                         if (wd->width == extra) {
-                            /* the whole last word is hanging out. Just 
+                            /* the whole last word is hanging out. Just
                                 chop. */
                             lineover = TRUE;
                             lineeatto = wx-1;
@@ -389,8 +389,8 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
                             /* split the last word, creating a new one. */
                             tbword_t *wd2;
                             if (wx < numwords) {
-                                memmove(dwin->tmpwords+(wx+1), 
-                                    dwin->tmpwords+wx, 
+                                memmove(dwin->tmpwords+(wx+1),
+                                    dwin->tmpwords+wx,
                                     (numwords-wx) * sizeof(tbword_t));
                             }
                             wd2 = &(dwin->tmpwords[wx]);
@@ -415,22 +415,22 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
                 }
             }
         }
-        
+
         if (!lineover) {
             /* ran out of characters, no newline */
             lineeatto = wx;
             lineeatpos = chend;
             linetype = wd_EndPage;
         }
-        
+
         if (lineeatto) {
             ln->words = (tbword_t *)malloc(lineeatto * sizeof(tbword_t));
             memcpy(ln->words, dwin->tmpwords, lineeatto * sizeof(tbword_t));
             ln->numwords = lineeatto;
-            
+
             if (lineeatto < numwords) {
-                memmove(dwin->tmpwords, 
-                    dwin->tmpwords+lineeatto, 
+                memmove(dwin->tmpwords,
+                    dwin->tmpwords+lineeatto,
                     (numwords-lineeatto) * sizeof(tbword_t));
             }
             numwords -= lineeatto;
@@ -451,11 +451,11 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
         linestartpos = lineeatpos;
         ln->startpara = (lastlinetype != wd_Text);
         lastlinetype = linetype;
-        
+
         /* numwords, linestartpos, and startpara values are carried around
             to beginning of loop. */
     }
-    
+
     return lx;
 }
 
@@ -467,33 +467,33 @@ static void replace_lines(window_textbuffer_t *dwin, long oldbeg, long oldend,
 {
     long diff;
     tbline_t *lines; /* cache */
-    
+
     diff = newnum - (oldend - oldbeg);
     /* diff is the amount which lines will grow or shrink. */
-    
+
     if (dwin->numlines+diff > dwin->linessize) {
         while (dwin->numlines+diff > dwin->linessize)
             dwin->linessize *= 2;
-        dwin->lines = (tbline_t *)realloc(dwin->lines, 
+        dwin->lines = (tbline_t *)realloc(dwin->lines,
             dwin->linessize * sizeof(tbline_t));
     }
-    
+
     if (oldend > oldbeg)
         final_lines(dwin, oldbeg, oldend);
-    
+
     lines = dwin->lines;
 
     if (diff != 0) {
         /* diff may be positive or negative */
         if (oldend < dwin->numlines)
-            memmove(&(lines[oldend+diff]), &(lines[oldend]), 
+            memmove(&(lines[oldend+diff]), &(lines[oldend]),
                 (dwin->numlines - oldend) * sizeof(tbline_t));
     }
     dwin->numlines += diff;
-    
+
     if (newnum)
         memcpy(&(lines[oldbeg]), dwin->tmplines, newnum * sizeof(tbline_t));
-        
+
     if (dwin->scrollline > oldend) {
         dwin->scrollline += diff;
     }
@@ -523,7 +523,13 @@ static void replace_lines(window_textbuffer_t *dwin, long oldbeg, long oldend,
 static void updatetext(window_textbuffer_t *dwin)
 {
     long drawbeg, drawend;
-    
+
+/* These don't need to be inside these method, but it's static. how do we do one-time? */
+    start_color();
+    init_pair(1, COLOR_GREEN, COLOR_RED);
+    init_pair(2, COLOR_GREEN, COLOR_BLUE);
+    init_pair(3, COLOR_RED, COLOR_BLUE);
+
     if (dwin->dirtybeg != -1) {
         long numtmplines;
         long chbeg, chend; /* changed region */
@@ -531,12 +537,12 @@ static void updatetext(window_textbuffer_t *dwin)
         long lnbeg, lnend; /* lines being replaced */
         long lndelta;
         int startpara;
-        
+
         chbeg = dwin->dirtybeg;
         chend = dwin->dirtyend;
         oldchbeg = dwin->dirtybeg;
         oldchend = dwin->dirtyend - dwin->dirtydelta;
-        
+
         /* push ahead to next newline or end-of-text (still in the same
             line as dirtyend, though). move chend and oldchend in parallel,
             since (outside the changed region) nothing has changed. */
@@ -545,10 +551,10 @@ static void updatetext(window_textbuffer_t *dwin)
             oldchend++;
         }
         lnend = find_line_by_pos(dwin, oldchend) + 1;
-        
-        /* back up to beginning of line, or previous newline, whichever 
+
+        /* back up to beginning of line, or previous newline, whichever
             is first */
-        lnbeg = find_line_by_pos(dwin, oldchbeg); 
+        lnbeg = find_line_by_pos(dwin, oldchbeg);
         if (lnbeg >= 0) {
             oldchbeg = dwin->lines[lnbeg].pos;
             chbeg = oldchbeg;
@@ -562,18 +568,18 @@ static void updatetext(window_textbuffer_t *dwin)
             }
             startpara = TRUE;
         }
-        
+
         /* lnend is now the first line not to replace. [0..numlines]
             lnbeg is the first line *to* replace [0..numlines) */
-        
+
         numtmplines = layout_chars(dwin, chbeg, chend, startpara);
         dwin->dirtybeg = -1;
         dwin->dirtyend = -1;
         dwin->dirtydelta = -1;
-        
+
         replace_lines(dwin, lnbeg, lnend, numtmplines);
         lndelta = numtmplines - (lnend-lnbeg);
-        
+
         drawbeg = lnbeg;
         if (lndelta == 0) {
             drawend = lnend;
@@ -589,26 +595,26 @@ static void updatetext(window_textbuffer_t *dwin)
         drawbeg = 0;
         drawend = 0;
     }
-    
+
     if (dwin->drawall) {
         drawbeg = dwin->scrollline;
         drawend = dwin->scrollline + dwin->height;
         dwin->drawall = FALSE;
     }
-    
+
     if (drawend > drawbeg) {
         long lx, wx;
         int physln;
         int orgx, orgy;
-        
+
         if (drawbeg < dwin->scrollline)
             drawbeg = dwin->scrollline;
         if (drawend > dwin->scrollline + dwin->height)
             drawend = dwin->scrollline + dwin->height;
-        
+
         orgx = dwin->owner->bbox.left;
         orgy = dwin->owner->bbox.top;
-        
+
         for (lx=drawbeg; lx<drawend; lx++) {
             physln = lx - dwin->scrollline;
             if (lx >= 0 && lx < dwin->numlines) {
@@ -619,7 +625,13 @@ static void updatetext(window_textbuffer_t *dwin)
                     tbword_t *wd = &(ln->words[wx]);
                     if (wd->type == wd_Text || wd->type == wd_Blank) {
                         wchar_t *cx = (wchar_t *)&(dwin->chars[wd->pos]);
-                        attrset(win_textbuffer_styleattrs[wd->style]);
+                        /* adding color support via stylehints, TARGET 00AA0
+                           commenting this next line out does indeed remove
+                           underline and bold.
+                         */
+                        /* attrset(win_textbuffer_styleattrs[wd->style]); */
+                        /* attrset(A_BLINK | COLOR_PAIR(1) | win_textbuffer_styleattrs[wd->style]); */
+                        attrset(COLOR_PAIR(1) | win_textbuffer_styleattrs[wd->style]);
                         local_addnwstr(cx, wd->len);
                         cx += wd->len;
                         count += wd->width;
@@ -654,22 +666,22 @@ void win_textbuffer_putchar(window_t *win, wchar_t ch)
 {
     window_textbuffer_t *dwin = win->data;
     long lx;
-    
+
     if (dwin->numchars >= dwin->charssize) {
         dwin->charssize *= 2;
-        dwin->chars = (wchar_t *)realloc(dwin->chars, 
+        dwin->chars = (wchar_t *)realloc(dwin->chars,
             dwin->charssize * sizeof(wchar_t));
     }
-    
+
     lx = dwin->numchars;
-    
+
     if (win->style != dwin->runs[dwin->numruns-1].style) {
         set_last_run(dwin, win->style);
     }
-    
+
     dwin->chars[lx] = ch;
     dwin->numchars++;
-    
+
     if (dwin->dirtybeg == -1) {
         dwin->dirtybeg = lx;
         dwin->dirtyend = lx+1;
@@ -688,7 +700,7 @@ static void set_last_run(window_textbuffer_t *dwin, glui32 style)
 {
     long lx = dwin->numchars;
     long rx = dwin->numruns-1;
-    
+
     if (dwin->runs[rx].pos == lx) {
         dwin->runs[rx].style = style;
     }
@@ -706,37 +718,37 @@ static void set_last_run(window_textbuffer_t *dwin, glui32 style)
 
 }
 
-/* This assumes that the text is all within the final style run. 
+/* This assumes that the text is all within the final style run.
     Convenient, but true, since this is only used by editing in the
     input text. */
-static void put_text(window_textbuffer_t *dwin, wchar_t *buf, long len, 
+static void put_text(window_textbuffer_t *dwin, wchar_t *buf, long len,
     long pos, long oldlen)
 {
     long diff = len - oldlen;
-    
+
     if (dwin->numchars + diff > dwin->charssize) {
         while (dwin->numchars + diff > dwin->charssize)
             dwin->charssize *= 2;
-        dwin->chars = (wchar_t *)realloc(dwin->chars, 
+        dwin->chars = (wchar_t *)realloc(dwin->chars,
             dwin->charssize * sizeof(wchar_t));
     }
-    
+
     if (diff != 0 && pos+oldlen < dwin->numchars) {
-        memmove(dwin->chars+(pos+len), dwin->chars+(pos+oldlen), 
+        memmove(dwin->chars+(pos+len), dwin->chars+(pos+oldlen),
             ((dwin->numchars - (pos+oldlen)) * sizeof(wchar_t)));
     }
     if (len > 0) {
         memmove(dwin->chars+pos, buf, len * sizeof(wchar_t));
     }
     dwin->numchars += diff;
-    
+
     if (dwin->inbuf) {
         if (dwin->incurs >= pos+oldlen)
             dwin->incurs += diff;
         else if (dwin->incurs >= pos)
             dwin->incurs = pos+len;
     }
-    
+
     if (dwin->dirtybeg == -1) {
         dwin->dirtybeg = pos;
         dwin->dirtyend = pos+len;
@@ -755,12 +767,12 @@ void win_textbuffer_clear(window_t *win)
 {
     window_textbuffer_t *dwin = win->data;
     long oldlen = dwin->numchars;
-    
+
     dwin->numchars = 0;
     dwin->numruns = 1;
     dwin->runs[0].style = win->style;
     dwin->runs[0].pos = 0;
-    
+
     if (dwin->dirtybeg == -1) {
         dwin->dirtybeg = 0;
         dwin->dirtyend = 0;
@@ -785,35 +797,35 @@ void win_textbuffer_trim_buffer(window_t *win)
     long lnum, snum, cnum;
     long lx, wx, rx;
     tbline_t *ln;
-    
+
     if (dwin->numchars <= BUFFER_SIZE + BUFFER_SLACK)
-        return; 
-        
+        return;
+
     /* We need to knock BUFFER_SLACK chars off the beginning of the buffer, if
         such are conveniently available. */
-        
+
     trimsize = dwin->numchars - BUFFER_SIZE;
     if (dwin->dirtybeg != -1 && trimsize > dwin->dirtybeg)
         trimsize = dwin->dirtybeg;
-    if (dwin->inbuf && trimsize > dwin->infence) 
+    if (dwin->inbuf && trimsize > dwin->infence)
         trimsize = dwin->infence;
-    
+
     lnum = find_line_by_pos(dwin, trimsize);
     if (lnum <= 0)
         return;
     /* The trimsize point is at the beginning of lnum, or inside it. So lnum
         will be the first remaining line. */
-        
+
     ln = &(dwin->lines[lnum]);
     cnum = ln->pos;
     if (cnum <= 0)
         return;
     snum = find_style_by_pos(dwin, cnum);
-    
+
     /* trim chars */
-    
+
     if (dwin->numchars > cnum)
-        memmove(dwin->chars, &(dwin->chars[cnum]), 
+        memmove(dwin->chars, &(dwin->chars[cnum]),
             (dwin->numchars - cnum) * sizeof(wchar_t));
     dwin->numchars -= cnum;
 
@@ -826,9 +838,9 @@ void win_textbuffer_trim_buffer(window_t *win)
         dwin->dirtybeg -= cnum;
         dwin->dirtyend -= cnum;
     }
-    
+
     /* trim runs */
-    
+
     if (snum >= dwin->numruns) {
         short sstyle = dwin->runs[snum].style;
         dwin->runs[0].style = sstyle;
@@ -843,13 +855,13 @@ void win_textbuffer_trim_buffer(window_t *win)
             else
                 srun2->pos = 0;
         }
-        memmove(dwin->runs, &(dwin->runs[snum]), 
+        memmove(dwin->runs, &(dwin->runs[snum]),
             (dwin->numruns - snum) * sizeof(tbrun_t));
         dwin->numruns -= snum;
     }
-    
+
     /* trim lines */
-    
+
     final_lines(dwin, 0, lnum);
     for (lx=lnum; lx<dwin->numlines; lx++) {
         tbline_t *ln2 = &(dwin->lines[lx]);
@@ -861,18 +873,18 @@ void win_textbuffer_trim_buffer(window_t *win)
     }
 
     if (lnum < dwin->numlines)
-        memmove(&(dwin->lines[0]), &(dwin->lines[lnum]), 
+        memmove(&(dwin->lines[0]), &(dwin->lines[lnum]),
             (dwin->numlines - lnum) * sizeof(tbline_t));
     dwin->numlines -= lnum;
 
     /* trim all the other assorted crap */
-    
+
     if (dwin->inbuf) {
         /* there's pending line input */
         dwin->infence -= cnum;
         dwin->incurs -= cnum;
     }
-    
+
     if (dwin->scrollpos > cnum) {
         dwin->scrollpos -= cnum;
     }
@@ -880,15 +892,15 @@ void win_textbuffer_trim_buffer(window_t *win)
         dwin->scrollpos = 0;
         dwin->drawall = TRUE;
     }
-    
-    if (dwin->scrollline > lnum) 
+
+    if (dwin->scrollline > lnum)
         dwin->scrollline -= lnum;
-    else 
+    else
         dwin->scrollline = 0;
 
-    if (dwin->lastseenline > lnum) 
+    if (dwin->lastseenline > lnum)
         dwin->lastseenline -= lnum;
-    else 
+    else
         dwin->lastseenline = 0;
 
     if (dwin->scrollline > dwin->numlines - dwin->height)
@@ -943,11 +955,11 @@ void win_textbuffer_set_paging(window_t *win, int forcetoend)
 {
     window_textbuffer_t *dwin = win->data;
     int val;
-    
+
     if (dwin->lastseenline == dwin->numlines)
         return;
-    
-    if (!forcetoend 
+
+    if (!forcetoend
         && dwin->lastseenline - 0 < dwin->numlines - dwin->height) {
         /* scroll lastseenline to top, stick there */
         val = dwin->lastseenline - 1;
@@ -972,11 +984,11 @@ void win_textbuffer_set_paging(window_t *win, int forcetoend)
 }
 
 /* Prepare the window for line input. */
-void win_textbuffer_init_line(window_t *win, void *buf, int unicode, 
+void win_textbuffer_init_line(window_t *win, void *buf, int unicode,
     int maxlen, int initlen)
 {
     window_textbuffer_t *dwin = win->data;
-    
+
     dwin->inbuf = buf;
     dwin->inunicode = unicode;
     dwin->inmax = maxlen;
@@ -988,7 +1000,7 @@ void win_textbuffer_init_line(window_t *win, void *buf, int unicode,
     win->style = style_Input;
     set_last_run(dwin, win->style);
     dwin->historypos = dwin->historypresent;
-    
+
     if (initlen) {
         import_input_line(dwin, dwin->inbuf, dwin->inunicode, initlen);
     }
@@ -1019,10 +1031,10 @@ void win_textbuffer_cancel_line(window_t *win, event_t *ev)
 
     len = dwin->numchars - dwin->infence;
     /* Store in event buffer. */
-        
+
     if (len > inmax)
         len = inmax;
-        
+
     export_input_line(inbuf, inunicode, len, &dwin->chars[dwin->infence]);
 
     if (inecho && win->echostr) {
@@ -1034,17 +1046,17 @@ void win_textbuffer_cancel_line(window_t *win, event_t *ev)
 
     if (!inecho) {
         /* Wipe the typed text from the buffer. */
-        put_text(dwin, L"", 0, dwin->infence, 
+        put_text(dwin, L"", 0, dwin->infence,
             dwin->numchars - dwin->infence);
     }
-    
+
     win->style = dwin->origstyle;
     set_last_run(dwin, win->style);
 
     ev->type = evtype_LineInput;
     ev->win = win;
     ev->val1 = len;
-    
+
     win->line_request = FALSE;
     dwin->inbuf = NULL;
     dwin->inmax = 0;
@@ -1053,14 +1065,14 @@ void win_textbuffer_cancel_line(window_t *win, event_t *ev)
 
     if (inecho)
         win_textbuffer_putchar(win, L'\n');
-    
+
     if (gli_unregister_arr) {
         char *typedesc = (inunicode ? "&+#!Iu" : "&+#!Cn");
         (*gli_unregister_arr)(inbuf, inmax, typedesc, inarrayrock);
     }
 }
 
-static void import_input_line(window_textbuffer_t *dwin, void *buf, 
+static void import_input_line(window_textbuffer_t *dwin, void *buf,
     int unicode, long len)
 {
     /* len will be nonzero. */
@@ -1103,7 +1115,7 @@ static void export_input_line(void *buf, int unicode, long len, wchar_t *chars)
 /* Any key, during character input. Ends character input. */
 void gcmd_buffer_accept_key(window_t *win, glui32 arg)
 {
-    win->char_request = FALSE; 
+    win->char_request = FALSE;
     arg = gli_input_from_native(arg);
     gli_event_store(evtype_CharInput, win, arg, 0);
 }
@@ -1120,10 +1132,10 @@ void gcmd_buffer_accept_line(window_t *win, glui32 arg)
     glui32 termkey = arg;
     gidispatch_rock_t inarrayrock;
     window_textbuffer_t *dwin = win->data;
-    
+
     if (!dwin->inbuf)
         return;
-    
+
     inbuf = dwin->inbuf;
     inmax = dwin->inmax;
     inarrayrock = dwin->inarrayrock;
@@ -1131,7 +1143,7 @@ void gcmd_buffer_accept_line(window_t *win, glui32 arg)
     inecho = dwin->inecho;
 
     len = dwin->numchars - dwin->infence;
-    
+
     /* Store in history. */
     if (len) {
         cx = (wchar_t *)malloc((1+len) * sizeof(wchar_t));
@@ -1157,10 +1169,10 @@ void gcmd_buffer_accept_line(window_t *win, glui32 arg)
     }
 
     /* Store in event buffer. */
-        
+
     if (len > inmax)
         len = inmax;
-        
+
     export_input_line(inbuf, inunicode, len, &dwin->chars[dwin->infence]);
 
     if (inecho && win->echostr) {
@@ -1172,10 +1184,10 @@ void gcmd_buffer_accept_line(window_t *win, glui32 arg)
 
     if (!inecho) {
         /* Wipe the typed text from the buffer. */
-        put_text(dwin, L"", 0, dwin->infence, 
+        put_text(dwin, L"", 0, dwin->infence,
             dwin->numchars - dwin->infence);
     }
-    
+
     win->style = dwin->origstyle;
     set_last_run(dwin, win->style);
 
@@ -1200,13 +1212,13 @@ void gcmd_buffer_insert_key(window_t *win, glui32 arg)
 {
     window_textbuffer_t *dwin = win->data;
     wchar_t ch = glui32_to_wchar(arg);
-    
+
     if (!dwin->inbuf)
         return;
 
     put_text(dwin, &ch, 1, dwin->incurs, 0);
     updatetext(dwin);
-    
+
     if (dwin->scrollline < dwin->numlines - dwin->height) {
         gcmd_buffer_scroll(win, gcmd_DownEnd);
     }
@@ -1216,7 +1228,7 @@ void gcmd_buffer_insert_key(window_t *win, glui32 arg)
 void gcmd_buffer_move_cursor(window_t *win, glui32 arg)
 {
     window_textbuffer_t *dwin = win->data;
-    
+
     if (!dwin->inbuf)
         return;
 
@@ -1248,7 +1260,7 @@ void gcmd_buffer_move_cursor(window_t *win, glui32 arg)
 void gcmd_buffer_delete(window_t *win, glui32 arg)
 {
     window_textbuffer_t *dwin = win->data;
-    
+
     if (!dwin->inbuf)
         return;
 
@@ -1266,17 +1278,17 @@ void gcmd_buffer_delete(window_t *win, glui32 arg)
         case gcmd_KillInput:
             if (dwin->infence >= dwin->numchars)
                 return;
-            put_text(dwin, L"", 0, dwin->infence, 
+            put_text(dwin, L"", 0, dwin->infence,
                 dwin->numchars - dwin->infence);
             break;
         case gcmd_KillLine:
             if (dwin->incurs >= dwin->numchars)
                 return;
-            put_text(dwin, L"", 0, dwin->incurs, 
+            put_text(dwin, L"", 0, dwin->incurs,
                 dwin->numchars - dwin->incurs);
             break;
     }
-    
+
     updatetext(dwin);
 }
 
@@ -1286,10 +1298,10 @@ void gcmd_buffer_history(window_t *win, glui32 arg)
     window_textbuffer_t *dwin = win->data;
     wchar_t *cx;
     int len;
-    
+
     if (!dwin->inbuf || !dwin->history)
         return;
-    
+
     switch (arg) {
         case gcmd_Up:
             if (dwin->historypos == dwin->historyfirst)
@@ -1314,7 +1326,7 @@ void gcmd_buffer_history(window_t *win, glui32 arg)
             cx = dwin->history[dwin->historypos];
             if (!cx)
                 cx = L"";
-            put_text(dwin, cx, wcslen(cx), dwin->infence, 
+            put_text(dwin, cx, wcslen(cx), dwin->infence,
                 dwin->numchars - dwin->infence);
             break;
         case gcmd_Down:
@@ -1326,11 +1338,11 @@ void gcmd_buffer_history(window_t *win, glui32 arg)
             cx = dwin->history[dwin->historypos];
             if (!cx)
                 cx = L"";
-            put_text(dwin, cx, wcslen(cx), dwin->infence, 
+            put_text(dwin, cx, wcslen(cx), dwin->infence,
                 dwin->numchars - dwin->infence);
             break;
     }
-    
+
     updatetext(dwin);
 }
 
@@ -1339,12 +1351,12 @@ void gcmd_buffer_scroll(window_t *win, glui32 arg)
 {
     window_textbuffer_t *dwin = win->data;
     int maxval, minval, val;
-    
+
     minval = 0;
     maxval = dwin->numlines - dwin->height;
     if (maxval < 0)
         maxval = 0;
-    
+
     switch (arg) {
         case gcmd_UpEnd:
             val = minval;
@@ -1367,12 +1379,12 @@ void gcmd_buffer_scroll(window_t *win, glui32 arg)
         default:
             val = dwin->scrollline;
     }
-    
+
     if (val > maxval)
         val = maxval;
     if (val < minval)
         val = minval;
-    
+
     if (val != dwin->scrollline) {
         dwin->scrollline = val;
         if (val >= dwin->numlines)

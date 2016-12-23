@@ -17,6 +17,9 @@
 #include "garglk_minimum.h"
 #include <string.h>
 
+/* Temporary to get exit to work */
+#include <stdlib.h>
+
 
 /* This version of the library borrows from GarGlk to try and accept style hints. */
 
@@ -49,10 +52,16 @@ static int makefont(int p, int b, int i)
 }
 
 
+static int stylehint_set_call_count = 0;
+
 void glk_stylehint_set(glui32 wintype, glui32 style, glui32 hint, glsi32 val)
 {
+  stylehint_set_call_count++;
     style_t *styles;
     int p, b, i;
+
+fprintf(stderr, "stylehint %d\n", stylehint_set_call_count);
+/* this works: exit(0); */
 
     if (wintype == wintype_AllTypes)
     {
