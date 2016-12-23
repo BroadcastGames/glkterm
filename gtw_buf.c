@@ -40,6 +40,13 @@ window_textbuffer_t *win_textbuffer_create(window_t *win)
     dwin->owner = win;
 
     dwin->stylehint_ref = stylehint_set_call_count;
+    /*
+    ToDo: ideas
+    Stylehints are set based on type of window (TextBuffer in this situation)
+      - copy in speciifc attributes to get background/foreground color.
+      Also copy all the attributes so we can get User1/User2 for the window's
+         lifetime - as they are based on a snapshot of when they are created.
+    */
 
     dwin->numchars = 0;
     dwin->charssize = 500;
