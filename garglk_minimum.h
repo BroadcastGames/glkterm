@@ -26,3 +26,7 @@ extern int gli_conf_stylehint;
 extern unsigned char gli_window_color[3];
 extern unsigned char gli_caret_color[3];
 extern unsigned char gli_more_color[3];
+
+
+extern int stylehint_set_call_count;
+extern int stylehint_clear_call_count;

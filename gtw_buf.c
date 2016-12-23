@@ -15,6 +15,8 @@
 #include "glkterm.h"
 #include "gtw_buf.h"
 
+#include "garglk_minimum.h"
+
 /* Array of curses.h attribute values, one for each style. */
 int win_textbuffer_styleattrs[style_NUMSTYLES];
 
@@ -244,6 +246,7 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
     numwords = 0; /* actually number of tmpwords */
 
     rx = find_style_by_pos(dwin, chbeg);
+    /* style_learning_a2, what is this runs? I think it stands for 'style run', in terms of where RemGlk would break JSON elements for style change. */
     style = runs[rx].style;
     if (rx+1 >= dwin->numruns)
         styleendpos = chend+1;
@@ -297,6 +300,7 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
                 ch = chars[cx];
                 cx2 = cx;
                 cx++;
+                /* style_learning_a1, assigns style. */
                 if (ch == L'\n') {
                     wd->type = wd_EndLine;
                     wd->pos = cx2;
@@ -401,6 +405,7 @@ static long layout_chars(window_textbuffer_t *dwin, long chbeg, long chend,
                                 wd2->width += wcwidth(chars[cx2]);
                             }
                             wd2->type = wd->type;
+                            /* style_learning_a0, split word gets style. */
                             wd2->style = wd->style;
                             wd2->pos = cx2 + 1;
                             wd2->len = wd->pos + wd->len - wd2->pos;
@@ -639,7 +644,7 @@ static void updatetext(window_textbuffer_t *dwin)
                         if (lastStyle != wd->style) {
                           lastStyle = wd->style;
                           if (wd->type != wd_Blank)
-                            printw("{%d}", wd->style);
+                            printw("{%d:%d:%d:%d}", wd->style, dwin->numruns, stylehint_set_call_count, stylehint_clear_call_count);
                         }
                         local_addnwstr(cx, wd->len);
                         cx += wd->len;
