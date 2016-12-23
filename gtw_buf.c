@@ -39,6 +39,8 @@ window_textbuffer_t *win_textbuffer_create(window_t *win)
     window_textbuffer_t *dwin = (window_textbuffer_t *)malloc(sizeof(window_textbuffer_t));
     dwin->owner = win;
 
+    dwin->stylehint_ref = stylehint_set_call_count;
+
     dwin->numchars = 0;
     dwin->charssize = 500;
     dwin->chars = (wchar_t *)malloc(dwin->charssize * sizeof(wchar_t));
@@ -644,7 +646,7 @@ static void updatetext(window_textbuffer_t *dwin)
                         if (lastStyle != wd->style) {
                           lastStyle = wd->style;
                           if (wd->type != wd_Blank)
-                            printw("{%d:%d:%d:%d}", wd->style, dwin->numruns, stylehint_set_call_count, stylehint_clear_call_count);
+                            printw("{%d:%d:%d:%d:%d}", wd->style, dwin->numruns, stylehint_set_call_count, stylehint_clear_call_count, dwin->stylehint_ref);
                         }
                         local_addnwstr(cx, wd->len);
                         cx += wd->len;

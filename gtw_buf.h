@@ -29,7 +29,7 @@ typedef struct tbrun_struct {
 typedef struct tbline_struct {
     int numwords;
     tbword_t *words;
-    
+
     long pos; /* Position in the chars array. */
     long len; /* Number of characters, including blanks */
     int startpara; /* Is this line the start of a new paragraph, or is it
@@ -40,31 +40,33 @@ typedef struct tbline_struct {
 
 typedef struct window_textbuffer_struct {
     window_t *owner;
-    
+
     wchar_t *chars;
     long numchars;
     long charssize;
-    
+
     int width, height;
-    
+
     long dirtybeg, dirtyend; /* Range of text that has changed. */
     long dirtydelta; /* The amount the text has grown/shrunk since the
         last update. Also the amount the dirty region has grown/shrunk;
-        so the old end of the dirty region == (dirtyend - dirtydelta). 
+        so the old end of the dirty region == (dirtyend - dirtydelta).
         If dirtybeg == -1, dirtydelta is invalid. */
     int drawall; /* Does the whole window need to be redrawn at the next
         update? (Set when the text is scrolled, for example.) */
-    
+
     tbline_t *lines;
     long numlines;
     long linessize;
-    
+
     tbrun_t *runs;
     long numruns;
     long runssize;
 
+    int stylehint_ref;
+
     /* Temporary lines; used during layout. */
-    tbline_t *tmplines; 
+    tbline_t *tmplines;
     long tmplinessize;
 
     /* Temporary words; used during layout. */
@@ -79,7 +81,7 @@ typedef struct window_textbuffer_struct {
     long scrollline;
     long scrollpos;
     long lastseenline;
-    
+
     /* The following are meaningful only for the current line input request. */
     void *inbuf; /* char* or glui32*, depending on inunicode. */
     int inunicode;
@@ -115,4 +117,3 @@ extern void gcmd_buffer_move_cursor(window_t *win, glui32 arg);
 extern void gcmd_buffer_delete(window_t *win, glui32 arg);
 extern void gcmd_buffer_history(window_t *win, glui32 arg);
 extern void gcmd_buffer_scroll(window_t *win, glui32 arg);
-
