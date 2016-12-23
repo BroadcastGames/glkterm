@@ -621,6 +621,7 @@ static void updatetext(window_textbuffer_t *dwin)
                 tbline_t *ln = &(dwin->lines[lx]);
                 int count = 0;
                 move(orgy+physln, orgx);
+                int lastStyle = -1;
                 for (wx=0; wx<ln->printwords; wx++) {
                     tbword_t *wd = &(ln->words[wx]);
                     if (wd->type == wd_Text || wd->type == wd_Blank) {
@@ -628,10 +629,18 @@ static void updatetext(window_textbuffer_t *dwin)
                         /* adding color support via stylehints, TARGET 00AA0
                            commenting this next line out does indeed remove
                            underline and bold.
+
+                           wd is a word. Where is the word getting its ->style set?
                          */
-                        /* attrset(win_textbuffer_styleattrs[wd->style]); */
-                        /* attrset(A_BLINK | COLOR_PAIR(1) | win_textbuffer_styleattrs[wd->style]); */
-                        attrset(COLOR_PAIR(1) | win_textbuffer_styleattrs[wd->style]);
+                        attrset(win_textbuffer_styleattrs[wd->style]);
+                        /* attrset(COLOR_PAIR(1) | win_textbuffer_styleattrs[wd->style]); */
+
+                        /* detect change of styles so we don't over-print diagnostics */
+                        if (lastStyle != wd->style) {
+                          lastStyle = wd->style;
+                          if (wd->type != wd_Blank)
+                            printw("{%d}", wd->style);
+                        }
                         local_addnwstr(cx, wd->len);
                         cx += wd->len;
                         count += wd->width;
