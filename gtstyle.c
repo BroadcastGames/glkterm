@@ -11,10 +11,13 @@
 #include "glk.h"
 #include "glkterm.h"
 #include "gtw_grid.h"
-#include "gtw_buf.h"
 
 /* GarGlk code needs */
 #include "garglk_minimum.h"
+
+#include "gtw_buf.h"
+
+/* GarGlk code needs */
 #include <string.h>
 
 /* Temporary to get exit to work */
@@ -61,7 +64,8 @@ void glk_stylehint_set(glui32 wintype, glui32 style, glui32 hint, glsi32 val)
     style_t *styles;
     int p, b, i;
 
-fprintf(stderr, "stylehint %d\n", stylehint_set_call_count);
+/* TIP: close and open the storyhints window to see output */
+fprintf(stderr, "stylehint_set %d %d %d %d %d\n", stylehint_set_call_count, wintype, style, hint, val);
 /* this works: exit(0); */
 
     if (wintype == wintype_AllTypes)
@@ -84,6 +88,8 @@ fprintf(stderr, "stylehint %d\n", stylehint_set_call_count);
     switch (hint)
     {
         case stylehint_TextColor:
+            styles[style].fgint = val;
+            fprintf(stderr, "stylehint_set %d fgint %d\n", stylehint_set_call_count, val);
             styles[style].fg[0] = (val >> 16) & 0xff;
             styles[style].fg[1] = (val >> 8) & 0xff;
             styles[style].fg[2] = (val) & 0xff;
@@ -124,6 +130,9 @@ fprintf(stderr, "stylehint %d\n", stylehint_set_call_count);
             break;
     }
 
+    /*
+    Here is where the Glk Window background, cursor caret, and "More" scrolling prompt for the windows get set.
+    */
     if (wintype == wintype_TextBuffer &&
             style == style_Normal &&
             hint == stylehint_BackColor)

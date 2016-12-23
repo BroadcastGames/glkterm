@@ -13,12 +13,15 @@
 #include <curses.h>
 #include "glk.h"
 #include "glkterm.h"
-#include "gtw_buf.h"
 
 #include "garglk_minimum.h"
 
+#include "gtw_buf.h"
+
 /* Array of curses.h attribute values, one for each style. */
 int win_textbuffer_styleattrs[style_NUMSTYLES];
+
+static int win_textbuf_style_change_detect_count = 0;
 
 /* Maximum buffer size. The slack value is how much larger than the size
     we should get before we trim. */
@@ -41,11 +44,14 @@ window_textbuffer_t *win_textbuffer_create(window_t *win)
 
     dwin->stylehint_ref = stylehint_set_call_count;
     /*
+    style_learning_a4
     ToDo: ideas
     Stylehints are set based on type of window (TextBuffer in this situation)
       - copy in speciifc attributes to get background/foreground color.
       Also copy all the attributes so we can get User1/User2 for the window's
          lifetime - as they are based on a snapshot of when they are created.
+
+    Meaning of 'runs'? http://www.intfiction.org/forum/viewtopic.php?f=38&t=21048&p=117354
     */
 
     dwin->numchars = 0;
@@ -640,7 +646,8 @@ static void updatetext(window_textbuffer_t *dwin)
                     tbword_t *wd = &(ln->words[wx]);
                     if (wd->type == wd_Text || wd->type == wd_Blank) {
                         wchar_t *cx = (wchar_t *)&(dwin->chars[wd->pos]);
-                        /* adding color support via stylehints, TARGET 00AA0
+                        /* style_learning_a3
+                         adding color support via stylehints, TARGET 00AA0
                            commenting this next line out does indeed remove
                            underline and bold.
 
@@ -653,7 +660,20 @@ static void updatetext(window_textbuffer_t *dwin)
                         if (lastStyle != wd->style) {
                           lastStyle = wd->style;
                           if (wd->type != wd_Blank)
-                            printw("{%d:%d:%d:%d:%d}", wd->style, dwin->numruns, stylehint_set_call_count, stylehint_clear_call_count, dwin->stylehint_ref);
+                            printw("{%d:%d:%d:%d:%d~%d:%d!%d:%d:%d %d:%d:%d}",
+                               wd->style, dwin->numruns,
+                               stylehint_set_call_count,
+                               stylehint_clear_call_count,
+                               dwin->stylehint_ref,
+                               dwin->style_change_detect_count,
+                               win_textbuf_style_change_detect_count,
+                               dwin->style_tstyles_user1.fg[0],
+                               dwin->style_tstyles_user1.fg[1],
+                               dwin->style_tstyles_user1.fg[2],
+                               dwin->style_tstyles_user2.fg[0],
+                               dwin->style_tstyles_user2.fg[1],
+                               dwin->style_tstyles_user2.fg[2]
+                             );
                         }
                         local_addnwstr(cx, wd->len);
                         cx += wd->len;
@@ -698,7 +718,16 @@ void win_textbuffer_putchar(window_t *win, wchar_t ch)
 
     lx = dwin->numchars;
 
+    /*
+    style_learning_a5
+    is this how style transitions are detected, as each character is pumped into the window?
+    */
     if (win->style != dwin->runs[dwin->numruns-1].style) {
+        win_textbuf_style_change_detect_count++;
+        dwin->style_change_detect_count++;
+        dwin->style_tstyles_user1 = gli_tstyles[style_User1];
+        dwin->style_tstyles_user2 = gli_tstyles[style_User2];
+        printw(" AA0 %d", gli_tstyles[style_User1].fgint);
         set_last_run(dwin, win->style);
     }
 

@@ -36,6 +36,7 @@ GLKTERM_OBJS = \
   gtncursesw.o garglk_minimum_config.o
 
 GLKTERM_HEADERS = \
+	garglk_minimum.h \
   glkterm.h gtoption.h gtw_blnk.h gtw_buf.h \
   gtw_grid.h gtw_pair.h gi_dispa.h
 

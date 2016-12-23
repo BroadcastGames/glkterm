@@ -4,6 +4,24 @@
     http://www.eblong.com/zarf/glk/index.html
 */
 
+/*
+garglk_minimum has this, but don't know C conventions well enough to know why
+needs to be duplicated here.
+*/
+#ifndef A_H_STYLE_S
+#define A_H_STYLE_S
+struct style_s
+{
+    int font;
+    unsigned char bg[3];
+    unsigned char fg[3];
+    int fgint;             /* foreground color raw 24-bit int from Glk */
+    int reverse;
+};
+
+typedef struct style_s style_t;
+#endif
+
 /* Word types. */
 #define wd_Text (1) /* Nonwhite characters */
 #define wd_Blank (2) /* White (space) characters */
@@ -64,6 +82,9 @@ typedef struct window_textbuffer_struct {
     long runssize;
 
     int stylehint_ref;
+    int style_change_detect_count;
+    style_t style_tstyles_user1;
+    style_t style_tstyles_user2;
 
     /* Temporary lines; used during layout. */
     tbline_t *tmplines;
