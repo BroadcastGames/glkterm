@@ -19,6 +19,7 @@
 #include "gtw_buf.h"
 
 /* Array of curses.h attribute values, one for each style. */
+/* style_learning_a7 Are these the same for all windows, if 10 windows created? */
 int win_textbuffer_styleattrs[style_NUMSTYLES];
 
 static int win_textbuf_style_change_detect_count = 0;
@@ -546,8 +547,9 @@ static void updatetext(window_textbuffer_t *dwin)
 
 /* These don't need to be inside these method, but it's static. how do we do one-time? */
     start_color();
+    /* pull the two user1/usr2 here? */
     init_pair(1, COLOR_GREEN, COLOR_RED);
-    init_pair(2, COLOR_GREEN, COLOR_BLUE);
+    init_pair(2, COLOR_YELLOW, COLOR_BLUE);
     init_pair(3, COLOR_RED, COLOR_BLUE);
 
     if (dwin->dirtybeg != -1) {
@@ -654,12 +656,22 @@ static void updatetext(window_textbuffer_t *dwin)
                            wd is a word. Where is the word getting its ->style set?
                          */
                         attrset(win_textbuffer_styleattrs[wd->style]);
+                        switch (wd->style) {
+                          case style_User1:
+                            attron(COLOR_PAIR(1));
+                            break;
+                          case style_User2:
+                            attron(COLOR_PAIR(2));
+                            break;
+                        }
                         /* attrset(COLOR_PAIR(1) | win_textbuffer_styleattrs[wd->style]); */
 
                         /* detect change of styles so we don't over-print diagnostics */
                         if (lastStyle != wd->style) {
                           lastStyle = wd->style;
                           if (wd->type != wd_Blank)
+                          {
+                            /*
                             printw("{%d:%d:%d:%d:%d~%d:%d!%d:%d:%d %d:%d:%d}",
                                wd->style, dwin->numruns,
                                stylehint_set_call_count,
@@ -674,6 +686,8 @@ static void updatetext(window_textbuffer_t *dwin)
                                dwin->style_tstyles_user2.fg[1],
                                dwin->style_tstyles_user2.fg[2]
                              );
+                            */
+                          };
                         }
                         local_addnwstr(cx, wd->len);
                         cx += wd->len;
@@ -727,7 +741,10 @@ void win_textbuffer_putchar(window_t *win, wchar_t ch)
         dwin->style_change_detect_count++;
         dwin->style_tstyles_user1 = gli_tstyles[style_User1];
         dwin->style_tstyles_user2 = gli_tstyles[style_User2];
-        printw(" AA0 %d", gli_tstyles[style_User1].fgint);
+        printw(" AA0 %d #%06X/#%06X #%06X/#%06X ", win_textbuf_style_change_detect_count,
+           gli_tstyles[style_User1].fgint, gli_tstyles[style_User2].bgint,
+           gli_tstyles[style_User2].fgint, gli_tstyles[style_User2].bgint
+           );
         set_last_run(dwin, win->style);
     }
 

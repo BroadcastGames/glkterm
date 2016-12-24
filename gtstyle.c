@@ -66,7 +66,7 @@ void glk_stylehint_set(glui32 wintype, glui32 style, glui32 hint, glsi32 val)
     int p, b, i;
 
 /* TIP: close and open the storyhints window to see output */
-fprintf(stderr, "stylehint_set %d %d; %d %d %d %d\n", stylehint_set_call_count, stylehint_set_textcolor_count, wintype, style, hint, val);
+/* fprintf(stderr, "stylehint_set %d %d; %d %d %d %d\n", stylehint_set_call_count, stylehint_set_textcolor_count, wintype, style, hint, val); */
 /* this works: exit(0); */
 
     if (wintype == wintype_AllTypes)
@@ -91,13 +91,14 @@ fprintf(stderr, "stylehint_set %d %d; %d %d %d %d\n", stylehint_set_call_count, 
         case stylehint_TextColor:
             stylehint_set_textcolor_count++;
             styles[style].fgint = val;
-            fprintf(stderr, "stylehint_set %d fgint %d\n", stylehint_set_call_count, val);
+            /* fprintf(stderr, " :::stylehint_set %d %d fgint %d::\n", stylehint_set_call_count, stylehint_set_textcolor_count, val); */
             styles[style].fg[0] = (val >> 16) & 0xff;
             styles[style].fg[1] = (val >> 8) & 0xff;
             styles[style].fg[2] = (val) & 0xff;
             break;
 
         case stylehint_BackColor:
+            styles[style].bgint = val;
             styles[style].bg[0] = (val >> 16) & 0xff;
             styles[style].bg[1] = (val >> 8) & 0xff;
             styles[style].bg[2] = (val) & 0xff;

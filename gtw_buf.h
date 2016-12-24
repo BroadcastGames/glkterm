@@ -16,6 +16,7 @@ struct style_s
     unsigned char bg[3];
     unsigned char fg[3];
     int fgint;             /* foreground color raw 24-bit int from Glk */
+    int bgint;             /* background color raw 24-bit int from Glk */
     int reverse;
 };
 
