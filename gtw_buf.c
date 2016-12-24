@@ -656,6 +656,10 @@ static void updatetext(window_textbuffer_t *dwin)
                            wd is a word. Where is the word getting its ->style set?
                          */
                         attrset(win_textbuffer_styleattrs[wd->style]);
+                        /*
+                        can we directly use 24-bit color codes in ncurses?
+                        http://bug-ncurses.gnu.narkive.com/w1W4f29w/truecolor-support-in-ncurses
+                        */
                         switch (wd->style) {
                           case style_User1:
                             attron(COLOR_PAIR(1));
